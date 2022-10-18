@@ -1,19 +1,19 @@
 ###########################################################################
-######################      R for Env Sci - Week 03    ####################
-###############       01_Data_loading_II_and_tidyverse        #############
+######################      R for Env Sci - Week 05    ####################
+###############         02_Data_input_output_tidyverse        #############
 ###########################################################################
 
 ## Let's start with a black slate - Let's re-start the R session   <- CAREFUL!!! do it at your own risk!
 
-# Ctrl + Shift + Fn + F10  (PC / Linux)
-# Command + Shift + Fn+ F10 (Mac OS)
+# Ctrl + Shift + 0  (PC / Linux)
+# Command + Shift + 0 (Mac OS)
 
 
 # Load required packages --------------------------------------------------
 
 library(tidyverse)
 library(janitor)
-library(here)
+# library(here)
 
 
 # Data input output -------------------------------------------------------
@@ -22,9 +22,9 @@ library(here)
 
 data_a <- read.csv("data/example_data_set_a.csv")
 
-read.csv(here("data/example_data_set_a.csv"))
-
-read.csv(here("data", "example_data_set_a.csv"))
+# read.csv(here("data/example_data_set_a.csv"))
+# 
+# read.csv(here("data", "example_data_set_a.csv"))
 
 
 data_a
@@ -114,7 +114,7 @@ glimpse(weather_data)
 # you can create a subset of columns
 
 subset <- ditch_data %>% 
-  dplyr::select(site, year, month, depth, ph, conductivity)
+  dplyr::select(month, site, year, depth, ph, conductivity)
 
 subset
 
@@ -196,6 +196,8 @@ ditch_data %>%
 
 ditch_data
 
+glimpse(ditch_data)
+
 ditch_data_long <- ditch_data %>% 
   pivot_longer(cols = c(-site, -month, -year, -depth, -watershed), 
                names_to = "parameter", 
@@ -217,5 +219,12 @@ summary_table
   
   
   
+ditch_data %>% 
+  pivot_longer(cols = c(-site, -month, -year, -depth, -watershed), 
+               names_to = "parameter", 
+               values_to = "measure") %>% 
+  group_by(parameter) %>%
+  summarise(mean_value = mean(measure, na.rm = TRUE),
+            sd_value = sd(measure, na.rm = TRUE))
 
 
