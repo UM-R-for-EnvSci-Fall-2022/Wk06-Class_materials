@@ -7,21 +7,21 @@ output:
   keep_md: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 # Data input
 
-```{r}
 
+```r
 test_vector <- c(1,2,3)
-
 ```
 
-```{r}
 
+```r
 test_vector
+```
 
+```
+## [1] 1 2 3
 ```
 
