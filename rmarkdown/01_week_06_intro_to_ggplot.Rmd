@@ -1,0 +1,335 @@
+---
+title: "Week 6 - Intro to {ggplot}"
+author: "Jose Luis Rodriguez Gil"
+date: "19/10/2021"
+output: 
+ html_document:
+  keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r load packages, include = FALSE}
+
+library(tidyverse)
+library(janitor)
+library(palmerpenguins)
+
+library(here)
+
+```
+
+# The data - palmerpenguins::penguins
+
+```{r}
+print(penguins)
+```
+
+
+# ggplot layering
+
+Let's start by adding one layer at a time
+
+## 1. The data
+
+```{r}
+
+ggplot(data = penguins)
+
+```
+
+## 2. The aesthetics
+
+This is what variables of that data are being use and what are they being **mapped** to
+
+```{r}
+ggplot(data = penguins, 
+       aes(x = body_mass_g, y = bill_depth_mm))
+```
+
+## 3. The geometries
+
+```{r}
+ggplot(data = penguins, 
+       aes(x = body_mass_g, y = bill_depth_mm)) +
+  geom_point()
+```
+
+My personal preference is to specify the aesthetics `aes()` for each geometry. For xample"
+
+```{r, eval = FALSE}
+
+ggplot() +
+  geom_point(data = penguins, 
+             aes(x = body_mass_g, y = bill_depth_mm))
+
+```
+
+You can also use the pipe (%>%) to bring data into a ggplot. For example:
+
+```{r, eval = FALSE}
+
+penguins %>% 
+  ggplot() +
+  geom_point(aes(x = body_mass_g, y = bill_depth_mm))
+
+```
+
+Indicating the `aes()` on each geometry makes it more natural to change `aes()` that are specific for each geom. For example:
+
+```{r}
+penguins %>% 
+  ggplot() +
+  geom_point(aes(x = body_mass_g, y = bill_depth_mm, 
+                 colour = species))
+
+```
+
+**IMPORTANT NOTE**: elements **inside** the `aes()` are associated to variables (i.e. they will change with the data). some of these aesthetic elements (e.g. colour, shape, size, etc) can be manually fixed for **all** parts of the layer. In that case, they need to go **outside** the `aes()`. 
+
+Compare the figure above to this:
+
+```{r}
+penguins %>% 
+  ggplot() +
+  geom_point(aes(x = body_mass_g, y = bill_depth_mm), 
+             colour = "blue")
+```
+
+## 4. The facets
+
+Sometimes the data is too much for one panel
+
+```{r}
+
+penguins %>% 
+  ggplot() +
+  facet_wrap(~ species) +
+  geom_point(aes(x = body_mass_g, y = bill_depth_mm, 
+                 colour = species))
+  
+
+```
+
+## 5. The statistics
+
+We can let ggplot do some *stats* in the background as it plots. For example we can use `geom_smooth()` to add a *"trendline"* (remember, not a stats course!)
+
+```{r}
+penguins %>% 
+  ggplot() +
+  geom_point(aes(x = body_mass_g, y = bill_depth_mm)) +
+  geom_smooth(aes(x = body_mass_g, y = bill_depth_mm))
+
+```
+
+`geom_smooth()` is very powerful, and it can fit many different regression models. The default one is a *loess* model, a very flexible model. Unfortunately, it tends to overfit the data and get *"distracted"* by the noise.
+
+Fortunately, as mentioned `geom_smooth()` allows us to choose the method, so we can specify that we want a traditional *linear model* (or linear regression). Your usual `y = a + bx`
+
+```{r}
+
+penguins %>% 
+  ggplot() +
+  geom_point(aes(x = body_mass_g, y = bill_depth_mm)) +
+  geom_smooth(aes(x = body_mass_g, y = bill_depth_mm), method = "lm")
+
+```
+
+You can also map some of the aesthetic elements to variables, and this can have *surprising* effects!:
+
+```{r}
+
+penguins %>% 
+  ggplot() +
+  geom_point(aes(x = body_mass_g, y = bill_depth_mm, colour = species)) +
+  geom_smooth(aes(x = body_mass_g, y = bill_depth_mm, colour = species), method = "lm")
+
+```
+
+This is not a stats course, but this is known as the Simpson's paradox! (a trend appears in several different groups of data but disappears or reverses when these groups are combined)
+
+
+You can combine all the previous steps:
+
+```{r}
+penguins %>% 
+  ggplot() +
+  facet_wrap(~species) +
+  geom_point(aes(x = body_mass_g, y = bill_depth_mm, colour = species)) +
+  geom_smooth(aes(x = body_mass_g, y = bill_depth_mm, colour = species), method = "lm")
+
+```
+
+## 5.1 Boxplots
+
+ggplot can calculate summary stats on the fly for summary plots like Box-plots
+
+```{r}
+
+penguins %>% 
+  ggplot() +
+  geom_boxplot(aes(x = species, y = body_mass_g, fill = species ), colour = "blue")
+
+```
+
+Following an increasingly common trend (for good reasons!) We can add the raw data to these boxplots, highlighting the power of layering in ggplot.
+
+```{r}
+
+penguins %>% 
+  ggplot() +
+  geom_boxplot(aes(x = species, y = body_mass_g, colour = species)) +
+  geom_point(aes(x = species, y = body_mass_g, colour = species))
+
+
+```
+
+However, it is hard to see the data that way. For these cases there is a special geom, `geom_jitter()` which is a version of `geom_point()` which adds a little bit of noise to the data to allow easier visialization. The noise can be added to the x, or to the y or both. In our case, we will add it to the x only
+
+```{r}
+
+penguins %>% 
+  ggplot() +
+  geom_boxplot(aes(x = species, y = body_mass_g, colour = species)) +
+  geom_jitter(aes(x = species, y = body_mass_g, colour = species), width = 0.1, height = 0)
+
+
+```
+
+Although we will be looking more in detail to all aspects related to themes and how to "pretty-up" your plot next week, we can make this plot a bit nicer by adding some transparency to the points layer with the `alpha`
+
+```{r}
+penguins %>% 
+  ggplot() +
+  geom_boxplot(aes(x = species, y = body_mass_g, colour = species)) +
+  geom_jitter(aes(x = species, y = body_mass_g), width = 0.1, height = 0, alpha = 0.3)
+
+```
+
+## 5.2 Bar plots
+
+There are two types of geometries to deal with bar graphs in ggplot" `geom_bar()` and `geom_col()` with slightly different uses, which can be a bit confusing.
+
+The difference is in the stats that each plot uses behind the scenes.
+
+- `geom_bar()` uses the function `stat_count()` to calculate the height of the column, so it is mainly aimed to show counts
+- `geom_col()` uses the function `stat_identity()` to calculate the height of the column, so its main aim is to show summary values for variables
+
+
+Let's try `geom_bar()` for counts, in his case, how many individuals of each species we have in the dataset:
+
+```{r}
+
+penguins %>% 
+  ggplot() +
+  geom_bar(aes(species)) # we just need to give it one variable, the one it needs to count
+
+```
+
+The only information it gives us is the number of penguins for each species in the dataset. Not very useful.
+
+What if we sue `geom_col()` instead?
+
+```{r}
+
+penguins %>% 
+  ggplot() +
+  geom_col(aes(x = species, y = body_mass_g)) # now we do need to give it two variables because this geom doesnt default to count things
+
+```
+hummm... There is something odd there... lets compare it to the box plot we made earlier.
+
+```{r, echo=FALSE}
+
+penguins %>% 
+  ggplot() +
+  geom_boxplot(aes(x = species, y = body_mass_g, colour = species)) +
+  geom_jitter(aes(x = species, y = body_mass_g, colour = species), width = 0.1, height = 0, alpha = 0.3)
+
+```
+
+The `stat_identity()` function used by default in `geom_col()` as it's name indicates, plots the actual value of each sample. So there is actually one column for each penguin being plotted on top of each-other there... **Not quite what we would expect**.
+
+Yo cannot directly ask `geom_col()` or `geom_bar()` to do summary statistics. But in ggplot there is a whole different set of elements, different from the geoms which are able to calculate summary statistics these are the `stat_` objects.
+
+for example:
+
+
+```{r}
+
+penguins %>% 
+  ggplot() +
+  stat_summary(aes(x = species, y = body_mass_g), fun = mean, geom = "bar")
+
+```
+
+You need to indicate the stat function it should use (e.g. mean), as well as how it should plot it (e.g as a bar)
+
+You can use the same approach to add error bars
+
+
+```{r}
+
+penguins %>% 
+  ggplot() +
+  stat_summary(aes(x = species, y = body_mass_g), fun = mean, geom = "bar") +
+  stat_summary(aes(x = species, y = body_mass_g), fun.data = mean_se, geom = "errorbar")  # the "fun.data" part is a bit tricky!
+
+```
+
+In general, the best approach is to calculate whatever summary statistics you would like to plot first, and then plot them as "identity". Lets see this aproach.
+
+```{r}
+
+penguins %>% 
+  group_by(species) %>% 
+  summarise(mean_body_mass = mean(body_mass_g, na.rm = TRUE),
+            sd_body_mass = sd(body_mass_g, na.rm = TRUE)) %>%
+  ggplot() +  # Notice the change from "%>%" to "+" when we enter the ggplot() section
+  geom_col(aes(x = species, y = mean_body_mass)) +
+  geom_errorbar(aes(x = species, ymin = mean_body_mass - sd_body_mass, ymax = mean_body_mass + sd_body_mass))
+  
+
+
+```
+
+## Sould you use bar charts?
+
+In summary, bar plots, specially summary bar plots in ggplot can be a bit of a pain. But that might be a blessing in disguise. Bar charts are notoriously bad at showing what we want them to show. So perhaps the deterrent might be better in the long term
+
+
+
+```{r echo=FALSE, out.width="100%", fig.align='center'}
+knitr::include_graphics(here("figures", "bars_vs_box_plots.png"))
+```
+
+image by @ChenxinLi2 (https://twitter.com/ChenxinLi2/status/1310101956883435523)
+
+## 6 Save plots
+
+Lets save a plot to the environment:
+
+
+```{r}
+
+plot_1 <- penguins %>% 
+  ggplot() +
+  geom_boxplot(aes(x = species, y = body_mass_g, colour = species)) +
+  geom_jitter(aes(x = species, y = body_mass_g, colour = species), width = 0.1, height = 0, alpha = 0.3)
+
+ggsave(here("figures", "plot_1.pdf"), plot_1,
+       width = 190, height = 120, units = "mm")  # as a pdf
+
+ggsave(here("figures", "plot_1.png"), plot_1,
+       width = 190, height = 120, units = "mm")  # as a png
+
+
+```
+
+
+Always review the output file to see the final product, the *plots* panel in RStudio is an aproximation, final text size and other formatting aspects can only be seen in the saved product.
+
