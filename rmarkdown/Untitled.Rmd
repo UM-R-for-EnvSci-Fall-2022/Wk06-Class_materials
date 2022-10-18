@@ -1,0 +1,25 @@
+---
+title: "Untitled"
+author: "Pepe Rodriguez"
+date: "2022-10-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data input
+
+```{r}
+
+test_vector <- c(1,2,3)
+
+```
+
+```{r}
+
+test_vector
+
+```
+
